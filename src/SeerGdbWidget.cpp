@@ -1156,6 +1156,15 @@ void SeerGdbWidget::handleGdbConnectExecutable () {
 
     while (1) {
 
+        bool loadPreviousBreakpoints = false;
+
+        if (isGdbRuning() == true) {
+            qDebug() << "Connect: gdb is running. Saving previous breakpoints.";
+            handleGdbCommand("save breakpoints /tmp/breakpoints.seer");
+            delay(1);
+            loadPreviousBreakpoints = true;
+        }
+
         // Delete the old gdb and console if there is a new executable
         if (newExecutableFlag() == true) {
             killGdb();
@@ -1189,6 +1198,13 @@ void SeerGdbWidget::handleGdbConnectExecutable () {
             handleGdbExecutablePreCommands();       // Run any 'pre' commands before program is loaded.
             handleGdbExecutableName();              // Load the program into the gdb process.
             handleGdbExecutableSources();           // Load the program source files.
+
+            if (loadPreviousBreakpoints) {
+                qDebug() << "Connect: Loading previous breakpoints.";
+                handleGdbCommand("source -v /tmp/breakpoints.seer");
+                loadPreviousBreakpoints = false;
+            }
+
             handleGdbExecutableLoadBreakpoints();   // Set the program's breakpoints (if any) before running.
 
             setNewExecutableFlag(false);
@@ -3592,6 +3608,15 @@ void SeerGdbWidget::sendGdbInterrupt (int signal) {
                                        QString("Unable to send signal '%1' to pid %2.\nError = '%3'").arg(strsignal(signal)).arg(executablePid()).arg(strerror(errno)),
                                        QMessageBox::Ok);
         }
+    }
+}
+
+void SeerGdbWidget::delay (int seconds) {
+
+    QTime dieTime = QTime::currentTime().addSecs(seconds);
+
+    while (QTime::currentTime() < dieTime) {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
     }
 }
 

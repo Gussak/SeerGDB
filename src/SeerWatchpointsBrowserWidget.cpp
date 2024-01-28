@@ -386,7 +386,7 @@ void SeerWatchpointsBrowserWidget::handleAddToolButton () {
 void SeerWatchpointsBrowserWidget::handleDeleteToolButton () {
 
     // Get selected tree items.
-    QList<QTreeWidgetItem*> items =  watchpointsTreeWidget->selectedItems();
+    QList<QTreeWidgetItem*> items = watchpointsTreeWidget->selectedItems();
 
     // Build a string that is a list of watchpoints.
     QString watchpoints;
