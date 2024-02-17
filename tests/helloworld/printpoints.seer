@@ -1,2 +1,0 @@
-dprintf -source /nas/erniep/Development/seer/tests/helloworld/helloworld.cpp -line 13,"argc=%d i=%d\n",argc,i
-break -source /nas/erniep/Development/seer/tests/helloworld/helloworld.cpp -line 24

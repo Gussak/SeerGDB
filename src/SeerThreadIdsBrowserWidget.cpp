@@ -100,6 +100,11 @@ void SeerThreadIdsBrowserWidget::handleText (const QString& text) {
 
 void SeerThreadIdsBrowserWidget::handleStoppingPointReached () {
 
+    // Don't do any work if the widget is hidden.
+    if (isHidden()) {
+        return;
+    }
+
     refresh();
 }
 
@@ -111,12 +116,6 @@ void SeerThreadIdsBrowserWidget::handleItemClicked (QTreeWidgetItem* item, int c
 }
 
 void SeerThreadIdsBrowserWidget::refresh () {
-
-    // Don't do any work if the widget is hidden.
-    if (isHidden()) {
-        return;
-    }
-
     emit refreshThreadIds();
 }
 

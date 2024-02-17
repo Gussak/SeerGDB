@@ -90,8 +90,6 @@ set(HEADER_FILES
     SeerImageVisualizerWidget.h
     SeerRegisterValuesBrowserWidget.h
     SeerRegisterEditValueDialog.h
-    SeerRegisterProfileDialog.h
-    SeerRegisterTreeWidgetItem.h
     SeerRunStatusIndicator.h
     SeerLibraryBrowserWidget.h
     SeerSourceBrowserWidget.h
@@ -126,7 +124,6 @@ set(HEADER_FILES
     SeerHelpPageDialog.h
     SeerProgressIndicator.h
     SeerMessagesDialog.h
-    SeerAssemblyPreferenceDialog.h
     QProcessInfo.h
     QProcessInfoWidget.h
     QProgressIndicator.h
@@ -184,8 +181,6 @@ set(SOURCE_FILES
     SeerImageVisualizerWidget.cpp
     SeerRegisterValuesBrowserWidget.cpp
     SeerRegisterEditValueDialog.cpp
-    SeerRegisterProfileDialog.cpp
-    SeerRegisterTreeWidgetItem.cpp
     SeerRunStatusIndicator.cpp
     SeerLibraryBrowserWidget.cpp
     SeerSourceBrowserWidget.cpp
@@ -220,7 +215,6 @@ set(SOURCE_FILES
     SeerHelpPageDialog.cpp
     SeerProgressIndicator.cpp
     SeerMessagesDialog.cpp
-    SeerAssemblyPreferenceDialog.cpp
     QProcessInfo.cpp
     QProcessInfoWidget.cpp
     QProgressIndicator.cpp

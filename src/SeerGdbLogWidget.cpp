@@ -86,10 +86,14 @@ void SeerGdbLogWidget::processText (const QString& text) {
         str = text;
     }
 
-    // Filter out \n and \t.
-    // Should probably do something better and expand them.
-    str.replace("\\t", "");
-    str.replace("\\n", "");
+    // Filter escape characters.
+    str = Seer::filterEscapes(str);
+
+    // Remove trailing "\n"
+    while (str.back() == '\n') {
+        str.chop(1);
+        break;
+    }
 
     // Write the string to the log.
     textEdit->append(str);

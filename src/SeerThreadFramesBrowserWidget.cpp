@@ -197,16 +197,15 @@ void SeerThreadFramesBrowserWidget::handleText (const QString& text) {
 
 void SeerThreadFramesBrowserWidget::handleStoppingPointReached () {
 
-    refresh();
-}
-
-void SeerThreadFramesBrowserWidget::refresh () {
-
     // Don't do any work if the widget is hidden.
     if (isHidden()) {
         return;
     }
 
+    refresh();
+}
+
+void SeerThreadFramesBrowserWidget::refresh () {
     emit refreshThreadIds();
     emit refreshThreadFrames();
 }

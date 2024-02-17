@@ -87,9 +87,6 @@ int main (int argc, char* argv[]) {
     QCommandLineOption configOption(QStringList() << "config");
     parser.addOption(configOption);
 
-    QCommandLineOption workingdirOption(QStringList() << "cwd" << "working-dir", "", "workingdirectory");
-    parser.addOption(workingdirOption);
-
     QCommandLineOption symbolfileOption(QStringList() << "sym" << "symbol-file", "", "symbolfile");
     parser.addOption(symbolfileOption);
 
@@ -158,7 +155,6 @@ int main (int argc, char* argv[]) {
     int     executablePid = -1;
     QString executableConnectHostPort;
     QString executableRRTraceDirectory;
-    QString executableWorkingDirectory;
     QString executableSymbolFilename;
     QString executableBreakpointsFilename;
     QString executableBreakpointFunctionName;
@@ -179,10 +175,6 @@ int main (int argc, char* argv[]) {
     if (parser.isSet(startOption)) {
         launchMode = "run";
         breakMode  = "inmain";
-    }
-
-    if (parser.isSet(workingdirOption)) {
-        executableWorkingDirectory = parser.value(workingdirOption);
     }
 
     if (parser.isSet(symbolfileOption)) {
@@ -274,7 +266,6 @@ int main (int argc, char* argv[]) {
 
     seer.setWindowIcon(QIcon(":/seer/resources/seergdb_64x64.png"));
     seer.setExecutableName(executableName);
-    seer.setExecutableWorkingDirectory(executableWorkingDirectory);
     seer.setExecutableSymbolName(executableSymbolFilename);
     seer.setExecutableArguments(positionalArguments);
 
@@ -338,7 +329,6 @@ int main (int argc, char* argv[]) {
     }
 
     qDebug() << "EXECUTABLENAME"    << executableName;
-    qDebug() << "WORKINGDIRECTORY"  << executableWorkingDirectory;
     qDebug() << "SYMBOLNAME"        << executableSymbolFilename;
     qDebug() << "PID"               << executablePid;
     qDebug() << "CONNECTHOST"       << executableConnectHostPort;

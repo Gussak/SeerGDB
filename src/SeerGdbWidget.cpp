@@ -987,7 +987,6 @@ void SeerGdbWidget::handleGdbRunExecutable (const QString& breakMode) {
             setNewExecutableFlag(false);
         }
 
-        // Set or reset some things.
         handleGdbExecutableWorkingDirectory();  // Set the program's working directory before running.
         handleGdbAssemblyDisassemblyFlavor();   // Set the disassembly flavor to use.
         handleGdbAssemblySymbolDemangling();    // Set the symbol demangling.
@@ -1156,6 +1155,15 @@ void SeerGdbWidget::handleGdbConnectExecutable () {
 
     while (1) {
 
+        // Has a executable name been provided?
+        if (executableName() != "") {
+
+            QMessageBox::warning(this, "Seer",
+                    QString("The executable name can't be provided for 'connect' mode."),
+                    QMessageBox::Ok);
+            break;
+        }
+
         // Delete the old gdb and console if there is a new executable
         if (newExecutableFlag() == true) {
             killGdb();
@@ -1233,6 +1241,7 @@ void SeerGdbWidget::handleGdbRRExecutable () {
 
         // Has a executable name been provided?
         if (executableName() != "") {
+
             QMessageBox::warning(this, "Seer",
                     QString("The executable name can't be provided for 'rr' mode."),
                     QMessageBox::Ok);
@@ -2243,10 +2252,6 @@ void SeerGdbWidget::handleGdbRegisterListValues (QString fmt) {
     if (fmt == "") {
         fmt = "N";
     }
-
-    // XXX Not sure what --skip-unavailable does.
-    // XXX Perhaps skips registers that can't get value for.
-    // XXX handleGdbCommand("-data-list-register-values --skip-unavailable " + fmt);
 
     handleGdbCommand("-data-list-register-values " + fmt);
 }

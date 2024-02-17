@@ -6,7 +6,6 @@
 #include <QtGui/QClipboard>
 #include <QtGui/QTextCursor>
 #include <QtGui/QTextBlock>
-#include <QtCore/QStringConverter>
 #include <QtCore/QSize>
 #include <QtCore/QDebug>
 #include <stdexcept>
@@ -218,12 +217,6 @@ QString SeerHexWidget::charModeString () const {
 
     if (charMode() == SeerHexWidget::AsciiCharMode) {
         return "ascii";
-    }else if (charMode() == SeerHexWidget::Utf8Mode) {
-        return "utf8";
-    }else if (charMode() == SeerHexWidget::Utf16Mode) {
-        return "utf16";
-    }else if (charMode() == SeerHexWidget::Utf32Mode) {
-        return "utf32";
     }else if (charMode() == SeerHexWidget::EbcdicCharMode) {
         return "ebcdic";
     }
@@ -264,7 +257,7 @@ void SeerHexWidget::handleCursorPositionChanged () {
         return;
     }
 
-    // Is is after the hex values? (ascii/utf/ebcdic region)
+    // Is is after the hex values? (ascii/ebcdic region)
     if (cursor.positionInBlock() > SeerHexWidget::HexFieldWidth + hexCharsPerLine()) {
         emit byteOffsetChanged(-1);
         return;
@@ -344,19 +337,16 @@ void SeerHexWidget::handleByteOffsetChanged (int byte) {
         extraSelections.append(extra_byte);
 
         // Highlight the current ascii value.
-        // For Ascii and Ebcdic only. No UTF as it can be variable length encoding.
-        if (charMode() == SeerHexWidget::AsciiCharMode || charMode() == SeerHexWidget::EbcdicCharMode) {
-            cursor.movePosition(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
-            cursor.movePosition(QTextCursor::Right,       QTextCursor::MoveAnchor, pos_a);
-            cursor.movePosition(QTextCursor::Right,       QTextCursor::KeepAnchor, 1);
+        cursor.movePosition(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
+        cursor.movePosition(QTextCursor::Right,       QTextCursor::MoveAnchor, pos_a);
+        cursor.movePosition(QTextCursor::Right,       QTextCursor::KeepAnchor, 1);
 
-            // Add it to the extra selections.
-            QTextEdit::ExtraSelection extra_ascii;
-            extra_ascii.format.setBackground(plainTextEdit->palette().highlight().color());
-            extra_ascii.cursor = cursor;
+        // Add it to the extra selections.
+        QTextEdit::ExtraSelection extra_ascii;
+        extra_ascii.format.setBackground(plainTextEdit->palette().highlight().color());
+        extra_ascii.cursor = cursor;
 
-            extraSelections.append(extra_ascii);
-        }
+        extraSelections.append(extra_ascii);
 
     } plainTextEdit->setExtraSelections(extraSelections);
 
@@ -531,10 +521,6 @@ void SeerHexWidget::handleByteOffsetChanged (int byte) {
                 val += QString(symbol);
             }
 
-        }else if (charMode() == SeerHexWidget::Utf8Mode || charMode() == SeerHexWidget::Utf16Mode || charMode() == SeerHexWidget::Utf32Mode) {
-
-            val = "Can't show for UTF";
-
         }else if (charMode() == SeerHexWidget::EbcdicCharMode) {
             for (int i=0; i<arr.size(); i++) {
 
@@ -545,7 +531,7 @@ void SeerHexWidget::handleByteOffsetChanged (int byte) {
             }
 
         }else{
-            val = "";
+            // Don't print anything.
         }
 
         lineEdit_14->setText(val);
@@ -570,71 +556,6 @@ void SeerHexWidget::create () {
         return;
     }
 
-    // Convert the data to a 'text' string.
-    QString    textString = "";
-    QByteArray data       = _pdata->getData();
-
-    if (charMode() == SeerHexWidget::AsciiCharMode) {
-
-        for (int b=0; b<data.size(); b++) {
-
-            unsigned char ch = Seer::ucharToAscii(data[b]);
-
-            textString.append(QChar(ch));
-        }
-
-    }else if (charMode() == SeerHexWidget::Utf8Mode) {
-
-        auto toUtf16 = QStringDecoder(QStringDecoder::Utf8, QStringConverter::Flag::ConvertInvalidToNull);
-
-        textString = toUtf16.decode(data);
-
-        // Filter out ascii control characters.
-        for (int b=0; b<textString.length(); b++) {
-            if (textString[b] == QChar(127) || textString[b] < QChar(32)) {
-                textString[b] = QChar::ReplacementCharacter;
-            }
-        }
-
-    }else if (charMode() == SeerHexWidget::Utf16Mode) {
-
-        auto toUtf16 = QStringDecoder(QStringDecoder::Utf16, QStringConverter::Flag::ConvertInvalidToNull);
-
-        textString = toUtf16.decode(data);
-
-        // Filter out ascii control characters.
-        for (int b=0; b<textString.length(); b++) {
-            if (textString[b] == QChar(127) || textString[b] < QChar(32)) {
-                textString[b] = QChar::ReplacementCharacter;
-            }
-        }
-
-    }else if (charMode() == SeerHexWidget::Utf32Mode) {
-
-        auto toUtf16 = QStringDecoder(QStringDecoder::Utf32, QStringConverter::Flag::ConvertInvalidToNull);
-
-        textString = toUtf16.decode(data);
-
-        // Filter out ascii control characters.
-        for (int b=0; b<textString.length(); b++) {
-            if (textString[b] == QChar(127) || textString[b] < QChar(32)) {
-                textString[b] = QChar::ReplacementCharacter;
-            }
-        }
-
-    }else if (charMode() == SeerHexWidget::EbcdicCharMode) {
-
-        for (int b=0; b<data.size(); b++) {
-
-            unsigned char ch = Seer::ebcdicToAscii(data[b]);
-
-            textString.append(QChar(ch));
-        }
-
-    }else{
-        // No 'text' string.
-    }
-
     // Set text formats.
     QTextCharFormat defaultFormat = plainTextEdit->currentCharFormat();
     QTextCharFormat grayFormat    = defaultFormat;
@@ -648,7 +569,9 @@ void SeerHexWidget::create () {
     cursor.movePosition(QTextCursor::Start);
 
     // Go through the data, one byte at a time.
-    for (int i=0; i<data.size(); i+=bytesPerLine()) {
+    for (int i=0; i<_pdata->size(); i+=bytesPerLine()) {
+
+        QByteArray data = _pdata->getData(i, bytesPerLine());
 
         // Place a new hex address on the left side.
         if (i % bytesPerLine() == 0) {
@@ -665,9 +588,9 @@ void SeerHexWidget::create () {
         // Print N bytes in their datatype value.
         int b = 0;
 
-        for (b=0; b<bytesPerLine() && i+b < data.size(); b++) {
+        for (b=0; b<bytesPerLine() && i+b < _pdata->size(); b++) {
 
-            unsigned char ch = data[i+b];
+            unsigned char ch = data[b];
 
             QString val;
 
@@ -717,13 +640,33 @@ void SeerHexWidget::create () {
         // Write spacer to document.
         cursor.insertText (QString("| "), defaultFormat);
 
-        // Print N bytes of the 'text' string.
-        for (int b=0; b<bytesPerLine() && i+b < textString.length(); b++) {
+        // Print N bytes in their char value.
+        if (charMode() == SeerHexWidget::AsciiCharMode) {
+            for (int b=0; b<bytesPerLine() && i+b < _pdata->size(); b++) {
 
-            QString val = textString[i+b];
+                unsigned char ch = Seer::ucharToAscii( data[b] );
 
-            // Write display character to document.
-            cursor.insertText (val, defaultFormat);
+                QChar symbol = QChar(ch);
+                QString val(symbol);
+
+                // Write display character to document.
+                cursor.insertText (val, defaultFormat);
+            }
+
+        }else if (charMode() == SeerHexWidget::EbcdicCharMode) {
+            for (int b=0; b<bytesPerLine() && i+b < _pdata->size(); b++) {
+
+                unsigned char ch = Seer::ebcdicToAscii( data[b] );
+
+                QChar symbol = QChar(ch);
+                QString val(symbol);
+
+                // Write display character to document.
+                cursor.insertText (val, defaultFormat);
+            }
+
+        }else{
+            // Don't print anything.
         }
 
         // Write eol to document.
@@ -735,7 +678,7 @@ void SeerHexWidget::create () {
 
     // Print checksum.
     {
-        quint16 crc16    = qChecksum(data, Qt::ChecksumIso3309);
+        quint16 crc16    = qChecksum(_pdata->getData(), Qt::ChecksumIso3309);
         QString crc16str = QString::number(crc16);
 
         lineEdit_15->setText(crc16str);
