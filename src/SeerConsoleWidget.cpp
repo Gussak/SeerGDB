@@ -17,7 +17,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <sys/ioctl.h>
-#include <iostream>
+#include <stdio.h>
 
 SeerConsoleWidget::SeerConsoleWidget (QWidget* parent) : QWidget(parent) {
 
@@ -80,7 +80,8 @@ void SeerConsoleWidget::handleText (const char* buffer, int count) {
     // parse off lines
     const char* start = buffer;
     
-    std::cerr << start;
+    // Write text to stderr on console.
+    write (2, start, count);    
 
     while (count > 0) {
 
