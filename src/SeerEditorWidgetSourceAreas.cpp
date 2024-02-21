@@ -1062,6 +1062,7 @@ void SeerEditorWidgetSourceArea::showContextMenu (const QPoint& pos, const QPoin
     QAction* enableAction;
     QAction* disableAction;
     QAction* runToLineAction;
+    QAction* openCodeEditorAtLine;
     QAction* addVariableLoggerExpressionAction;
     QAction* addVariableLoggerAsteriskExpressionAction;
     QAction* addVariableLoggerAmpersandExpressionAction;
@@ -1084,13 +1085,14 @@ void SeerEditorWidgetSourceArea::showContextMenu (const QPoint& pos, const QPoin
     if (hasBreakpointLine(lineno) == true) {
 
         int breakno = breakpointLineToNumber(lineno);
-
+        
         createBreakpointAction    = new QAction(QIcon(":/seer/resources/RelaxLightIcons/document-new.svg"), QString("Create breakpoint on line %1").arg(lineno), this);
         createPrintpointAction    = new QAction(QIcon(":/seer/resources/RelaxLightIcons/document-new.svg"), QString("Create printpoint on line %1").arg(lineno), this);
         deleteAction              = new QAction(QIcon(":/seer/resources/RelaxLightIcons/edit-delete.svg"),  QString("Delete breakpoint %1 on line %2").arg(breakno).arg(lineno), this);
         enableAction              = new QAction(QIcon(":/seer/resources/RelaxLightIcons/list-add.svg"),     QString("Enable breakpoint %1 on line %2").arg(breakno).arg(lineno), this);
         disableAction             = new QAction(QIcon(":/seer/resources/RelaxLightIcons/list-remove.svg"),  QString("Disable breakpoint %1 on line %2").arg(breakno).arg(lineno), this);
         runToLineAction           = new QAction(QString("Run to line %1").arg(lineno), this);
+        openCodeEditorAtLine      = new QAction(QIcon(":/seer/resources/RelaxLightIcons/document-new.svg"), QString("Open Code Editor on line %1").arg(lineno), this);
 
         createBreakpointAction->setEnabled(false);
         createPrintpointAction->setEnabled(false);
@@ -1098,6 +1100,7 @@ void SeerEditorWidgetSourceArea::showContextMenu (const QPoint& pos, const QPoin
         enableAction->setEnabled(true);
         disableAction->setEnabled(true);
         runToLineAction->setEnabled(true);
+        openCodeEditorAtLine->setEnabled(true);
 
     }else{
         createBreakpointAction    = new QAction(QIcon(":/seer/resources/RelaxLightIcons/document-new.svg"), QString("Create breakpoint on line %1").arg(lineno), this);
@@ -1106,6 +1109,7 @@ void SeerEditorWidgetSourceArea::showContextMenu (const QPoint& pos, const QPoin
         enableAction              = new QAction(QIcon(":/seer/resources/RelaxLightIcons/list-add.svg"),     QString("Enable breakpoint on line %1").arg(lineno), this);
         disableAction             = new QAction(QIcon(":/seer/resources/RelaxLightIcons/list-remove.svg"),  QString("Disable breakpoint on line %1").arg(lineno), this);
         runToLineAction           = new QAction(QString("Run to line %1").arg(lineno), this);
+        openCodeEditorAtLine      = new QAction(QIcon(":/seer/resources/RelaxLightIcons/document-new.svg"), QString("Open Code Editor on line %1").arg(lineno), this);
 
         createBreakpointAction->setEnabled(true);
         createPrintpointAction->setEnabled(true);
@@ -1113,6 +1117,7 @@ void SeerEditorWidgetSourceArea::showContextMenu (const QPoint& pos, const QPoin
         enableAction->setEnabled(false);
         disableAction->setEnabled(false);
         runToLineAction->setEnabled(true);
+        openCodeEditorAtLine->setEnabled(true);
     }
 
     addVariableLoggerExpressionAction                   = new QAction(QString("\"%1\"").arg(textCursor().selectedText()));
@@ -1141,6 +1146,7 @@ void SeerEditorWidgetSourceArea::showContextMenu (const QPoint& pos, const QPoin
     menu.addAction(enableAction);
     menu.addAction(disableAction);
     menu.addAction(runToLineAction);
+    menu.addAction(openCodeEditorAtLine);
 
     QMenu loggerMenu("Add variable to Logger");
     loggerMenu.addAction(addVariableLoggerExpressionAction);
@@ -1304,6 +1310,16 @@ void SeerEditorWidgetSourceArea::showContextMenu (const QPoint& pos, const QPoin
         // Emit the runToLine signal.
         emit runToLine(fullname(), lineno);
 
+        return;
+    }
+
+    // Handle open code editor at a line number.
+    if (action == openCodeEditorAtLine) {
+        static std::string codeEditorCmd = [](){ const char* pc = std::getenv("SeerGDB_CustomCodeEditor"); if(pc) return pc; return ""; }(); //suggestion: geany "%{file}:%{line}"
+        if(codeEditorCmd.size() > 0) {
+            codeEditorCmd.replace(codeEditorCmd.find("%{file}"), 7, file().toStdString());
+            codeEditorCmd.replace(codeEditorCmd.find("%{line}"), 7, std::to_string(lineno));
+        }
         return;
     }
 
