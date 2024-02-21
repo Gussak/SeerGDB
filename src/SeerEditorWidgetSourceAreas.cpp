@@ -1315,10 +1315,16 @@ void SeerEditorWidgetSourceArea::showContextMenu (const QPoint& pos, const QPoin
 
     // Handle open code editor at a line number.
     if (action == openCodeEditorAtLine) {
-        static std::string codeEditorCmd = [](){ const char* pc = std::getenv("SeerGDB_CustomCodeEditor"); if(pc) return pc; return ""; }(); //suggestion: geany "%{file}:%{line}"
+        static std::string codeEditorCmd = [](){ const char* pc = std::getenv("SeerGDB_CustomCodeEditor"); if(pc) return pc; return ""; }(); //ex.: export SeerGDB_CustomCodeEditor="geany \"%{file}\":%{line}"
         if(codeEditorCmd.size() > 0) {
-            codeEditorCmd.replace(codeEditorCmd.find("%{file}"), 7, file().toStdString());
+            codeEditorCmd.replace(codeEditorCmd.find("%{file}"), 7, fullname().toStdString());
             codeEditorCmd.replace(codeEditorCmd.find("%{line}"), 7, std::to_string(lineno));
+            int retCmd = std::system(codeEditorCmd.c_str());
+            if(retCmd != 0) {
+              qDebug() << "running code editor failed" << retCmd;
+            }
+        } else {
+          qDebug() << "code editor not set";
         }
         return;
     }
